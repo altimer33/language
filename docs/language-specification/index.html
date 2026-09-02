@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Language - Index</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <h1>Language</h1>
+    <nav><a href="/syntax/syntax.html">Syntax</a><a href="/annotations/annotations.html">Compiler Annotations</a></nav>
+    <p>The goals of this language are as follows:
+        <ul>
+            <li>Create a low level programming language where the user has as much control over what happens as possible.</li>
+            <li>Seperate any compiler defined behavior from items created by the user with an annotation system.</li>
+            <ul>
+                <li><span class="mono">@throwable</span> annotation is required to work with the throw keyword, not implementing a <span class="mono">Throwable</span> class or interface, though extending a class or interface that implements the annotation would still allow for throwing.</li>
+                <li><span class="mono">@iterable</span> for the use in <span class="mono">for(Type val : iterable)</span> loops.</li>
+                <li>Using annotations like <span class="mono">@integer(8)</span> on a type implies that the compiler can assign an integer literal to the type, and that the type is 8 bits wide.</li>
+                <li>Rule of thumb for keywords and annotations: use keywords for items that the compiler mostly needs to know on the frontend (such as access modifiers), things that affect syntax in some way (like instanceof operator), and annotations for things that need to be passed to the backend (backend needs to know how to iterate over a type), or things that can take on multiple values (assigning literals to a type).</li>
+            </ul>
+            <li>Lock the user in to as little decisions (especially naming conventions) made by other people as possible. If they want to create a custom <span class="mono">int</span> class, let them, and give them ways to make it indistinguishable from the primitive. If they want to create a "method" on someone else's class (that works like a function created there and takes the <span class="mono">this</span> argument as the first (but hidden) parameter), let them. We've all had the moment of "this class needs a method for X", you implement the method as a static function, and get annoyed because everything else around it is <span class="mono">object.method()</span> while your one function is <span class="mono">X(object)</span> and you have OCD. No, just me? Sorry I didn't know.</li>
+            <li>Keep as much type information together as possible. No <span class="mono">int *var[2] = {&3, &5};</span> where the base type, pointer information, and array information are in 3 different locations.</li>
+        </ul>
+    </p>
+</body>
+</html>

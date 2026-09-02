@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Language - Syntax</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <h1>Language</h1>
+    <nav><a href="/syntax/syntax.html">Syntax</a><a href="/annotations/annotations.html">Compiler Annotations</a></nav>
+    <p>A quick overview of syntax. Will be split into multiple pages down the line.</p>
+    <h2>Type instances</h2>
+    <h3>Base types</h3>
+    <p>Base types, primitves or custom types, are just identifiers.</p>
+    <h3>Generics during use</h3>
+    <p>Generics are delimited with <span class="mono">&lt;</span>, <span class="mono">,</span>, and <span class="mono">&gt;</span>. They can include types (template types) or values (typically dimensions).</p>
+    <p>Generics contain expressions that resolve to either a type or value.</p>
+    <h4>Generics during definitions</h4>
+    <p>When using types, the syntax for a given generic is <span class="mono">subtype : type T : supertype</span>, where <span class="mono">T</span> is an identifier, <span class="mono">subtype</span> is an optional type that extends <span class="mono">T</span>, and <span class="mono">supertype</span> is an optional type that <span class="mono">T</span> extends. The two constraints are not mutually exclusive. Each colon should only be present if the "bounding type" is present.</p>
+    <p>When using vales, the syntax is <span class="mono">T value</span>, where <span class="mono">T</span> is a type, and <span class="mono">value</span> is an expression that would satisfy the constexpr keyword from c++.</p>
+    <h3>Arrays</h3>
+    <p>Arrays are created with brackets, and proceed the rest of the type. The syntax for arrays is <span class="mono">[n]T</span>, where n is an (optional? I want opinions about how this should work in different contexts) length and T is a type.</p>
+    <h3>Pointers</h3>
+    <p>Pointers are created with asterisks and amperstands, and proceed the rest of the type. The syntax is <span class="mono">*T</span> or <span class="mono">&T</span>, where <span class="mono">T</span> is the type. The difference is pointers created with <span class="mono">&</span> are not allowed to be <span class="mono">null</span>null.</p>
+    <h3>References</h3>
+    <p>References are created with the <span class="mono">ref</span> keyword, followed by the type. The syntax is <span class="mono">ref T</span>, where <span class="mono">T</span> is the type. References work like immutable non-null pointers to (by default) mutable values with automatic dereferencing.</p>
+    <h3>Constants</h3>
+    <p>Constants are created with the <span class="mono">const</span> keyword, followed by the type. The syntax is <span class="mono">const T</span>, where <span class="mono">T</span> is the type. Constants cannot be writeen to, and all members of a constant record are treated as if they had a <span class="mono">const</span> keyword added to the start of the type.</p>
+    <h3>Structures</h3>
+    <p>Structures are unnamed types, this language's version of tuples. <span class="mono">struct{int x, int y}</span> is a structure with two integers, and can be used in place of a type. This structure is considered identical (for puruposes of implicit casting) to any other structure with the same types in the same order.</p>
+    <h3>Nesting examples</h3>
+    <ul>
+        <li><span class="mono">[3][4]int</span> - Array of 3 arrays of 4 ints.</li>
+        <li><span class="mono">[3]*[4]int</span> - Array of 3 pointers to arrays of 4 ints.</li>
+        <li><span class="mono">ref const int</span> - Reference to a constant integer.</li>
+        <li><span class="mono">const *int</span> - Constant pointer to a mutable integer.</li>
+        <li><span class="mono">*const int</span> - Mutable pointer to a constant integer.</li>
+    </ul>
+    <h3>"Primitives"</h3>
+    <p>Primitives are not intended to be considered part of the spec: they should all be constructable from scratch and annotations. However, the following primitives should <i>probably</i> be defined in most cases:</p>
+    <ul>
+        <li><span class="mono">int</span></li>
+        <li><span class="mono">long</span></li>
+        <li><span class="mono">byte</span></li>
+        <li><span class="mono">short</span></li>
+        <li><span class="mono">float</span></li>
+        <li><span class="mono">double</span></li>
+        <li><span class="mono">uint</span></li>
+        <li><span class="mono">ulong</span></li>
+        <li><span class="mono">ubyte</span></li>
+        <li><span class="mono">ushort</span></li>
+        <li><span class="mono">bool</span></li>
+        <li><span class="mono">char</span> (8 bit character)</li>
+        <li><span class="mono">wchar</span> (16 bit character)</li>
+        <li><span class="mono">string</span> (technically going to be <span class="mono">typedef string : String&lt;char&gt;</span>), where String represents a list with specific properties, similar to a vector.</li>
+    </ul>
+    <h2>Typedefs</h2>
+    <p>Type definitions include classes, structures, unions, union structures, enums, enum classes, interfaces, and raw typedefs.</p>
+    <p>Records are a subtype of typedefs. They store data contiguously by name in memory. They include classes, structures, and enum classes.</p>
+    <p>Classes are named records. They store data in one spot, as a named type, and are not considered identical even to otherwise identical classes with different names. They are declared with the <span class="mono">class</span> keyword.</p>
+    <p>Structures are unnamed records. They are nearly identical to classes, except they are considered identical (and can thus be implicitly cast) to any other structure with the same order of types.</p>
+    <p>Enum classes are enumerations where each element of the enumeration is an instance of the class. Think Java style enums.</p>
+    <p>Other types aren't records:</p>
+    <p>Raw typedefs give an alternate name to another type, and are intended to be shorthands for very long types. They are declared with <span class="mono">typedef NewName : T</span>, where NewName is the name of the typedef, and T is the type it is equivalent to. Both sides are always considered the same type.</p>
+    <p>Enums essentially give names to numbers automatically. Similar to enum classes, where only some values are valid. Think C# style enums.</p>
+    <p>Interfaces encapsulate functionality between unlike classes.</p>
+    <p>Unions and union structs are very similar: they work like classes and structures respectively, but all of the values are overlapping. It has use cases, like viewing an IPv4 as either <span class="mono">[4]ubyte</span> or <span class="mono">int</span>. Note that union structures don't have names, and that the order now is commutative and only counts up to 1 instance of a given type.</p>
+    <h2>Memory management functions</h2>
+    <p>C++ memory management functions (destructors, move assignment operators, copy assignment operators, copy constructors, and move constructors) are a little unintuitive. Cleaner syntax is:</p>
+    <p>All of these functions exist on any type and are automatically generated like c++, unless explicit deletion by the user happens (syntax to come-undecided on what it is. Open to ideas!). The user cannot delete the initializer.</p>
+    <p><span class="mono">new copy(ref const T other) {...}</span></p>
+    <p><span class="mono">new move(ref T other) {...}</span></p>
+    <p><span class="mono">copy(ref const T other) {...}</span></p>
+    <p><span class="mono">move(ref T other) {...}</span></p>
+    <p><span class="mono">delete() {...}</span></p>
+    <p>We also add custom initalizers and default constructors, with syntaxes</p>
+    <p><span class="mono">init() {...}</span></p>
+    <p><span class="mono">new() {...}</span></p>
+    <p>Initializers run before any constructor, no matter which it is. The default constructor runs if a value is left uninitialized, as opposed to a no-arg constructor which requires explicit calling. If no no-arg constructor is defined, the default constructor runs if it is called. If no default constructor exists but a no-arg does, the no-arg is used as the default.</p>
+    <h2>Dereferencing</h2>
+    <p>The dereference operator (<span class="mono">*</span>) has a <i>higher</i> precidence than any other unary operator, as well as having a higher precidence than the access operator (<span class="mono">.</span>). This means <span class="mono">*a.b</span> evaluates to <span class="mono">(*a).b</span>, not <span class="mono">*(a.b)</span>. The dereference can also be placed immediately after an access operator, or immediately before a computed member access. <span class="mono">a.*b</span> is treated identically to <span class="mono">*(a.b)</span>, and this can be chained. The syntax <span class="mono">a*[b]</span> is also allowed, and evaluates to <span class="mono">*(a[b])</span>, while <span class="mono">*a[b]</span> evaluates to <span class="mono">(*a)[b]</span>. Finally, methods consider the method to be one "identifier", so <span class="mono">a*(b)</span> is not allowed, and <span class="mono">*a(b)</span> evaluates to <span class="mono">*(a(b))</span>.</p>
+    <h2>Status of this document</h2>
+    <p>This document is an incomplete picture, and meant only to give the unique quirks of this language, what make it beautiful. The majority of the syntax is similar or identical to other languages outside of this.</p>
+</body>
+</html>

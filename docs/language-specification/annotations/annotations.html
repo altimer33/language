@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Language - Annotations</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <h1>Language</h1>
+    <nav><a href="/syntax/syntax.html">Syntax</a><a href="/annotations/annotations.html">Compiler Annotations</a></nav>
+    <p>Planned annotations in spec:</p>
+    <ul>
+        <li><span class="mono">@integer(bitcount, signed)</span></li>
+        <li><span class="mono">@float(bitcount (or standard?))</span></li>
+        <li><span class="mono">@size(bytecount)</span></li>
+        <li><span class="mono">@allign(bytecount)</span></li>
+        <li><span class="mono">@throwable</span></li>
+        <li><span class="mono">@iterable</span> - for use in <span class="mono">for (T val : iterable_object)</span></li>
+        <li><span class="mono">@volatile</span> - don't reorder my insides for optimizations, because I have a reason not to want that</li>
+        <li><span class="mono">@mutates</span> - I mutate the "this" argument. Don't let me be called for a constant. (Replace with keyword? probably)</li>
+    </ul>
+    <p>Unknown annotations should be treated as if they don't exist by the compiler.</p>
+</body>
+</html>
