@@ -1,0 +1,27 @@
+{
+    "version": 8,
+    "configurePresets": [
+        {
+            "name": "Main",
+            "displayName": "Clang 22.1.3 (MSVC CLI) - amd64 for MSVC 18.9.12120.119 (Visual Studio Community 2026 Release)",
+            "description": "Using compilers: C = C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\Llvm\\x64\\bin\\clang-cl.exe, CXX = C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\Llvm\\x64\\bin\\clang-cl.exe",
+            "generator": "Visual Studio 18 2026",
+            "toolset": "ClangCL,host=x64",
+            "architecture": "x64",
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
+                "CMAKE_C_COMPILER": "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/Llvm/x64/bin/clang-cl.exe",
+                "CMAKE_CXX_COMPILER": "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/Llvm/x64/bin/clang-cl.exe"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "Main-debug",
+            "displayName": "Clang 22.1.3 (MSVC CLI) - amd64 for MSVC 18.9.12120.119 (Visual Studio Community 2026 Release) - Debug",
+            "configurePreset": "Main",
+            "configuration": "Debug"
+        }
+    ]
+}
