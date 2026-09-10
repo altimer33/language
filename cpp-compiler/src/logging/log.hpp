@@ -1,7 +1,6 @@
 #pragma once
 
-#include <iostream>
-#include <vector>
+#include <ostream>
 
 namespace logger {
     enum class LogLevel : unsigned char {

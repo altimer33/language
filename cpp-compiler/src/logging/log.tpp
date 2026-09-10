@@ -1,17 +1,8 @@
-#include <chrono>
-#include <format>
+#include <vector>
 #include <string>
 
 namespace logger {
-    std::vector<Logger> loggers = {};
-
-    Logger::Logger(std::ostream &outstream, const LogLevel minLevel, const LogLevel maxLevel) : 
-        outstream{outstream}, minLevel{minLevel}, maxLevel{maxLevel} 
-        { }
-
-    void addLogger(std::ostream &outstream, const LogLevel minLevel, const LogLevel maxLevel) {
-        loggers.emplace_back(outstream, minLevel, maxLevel);
-    }
+    extern std::vector<logger::Logger> loggers;
 
     consteval auto getStringValueOfLogLevel(const LogLevel level) {
         switch (level) {
@@ -23,6 +14,8 @@ namespace logger {
         }
     }
 
+    std::string getTimestampAsString();
+
     template<LogLevel level, typename... T>
     void Logger::log(T &&...values) const {
         if (level >= minLevel && level <= maxLevel) {
@@ -30,13 +23,9 @@ namespace logger {
         }
     }
 
-    auto getTimestampAsString() {
-        return std::format("{:%H:%M:%S}", std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now()));
-    }
-
     template<LogLevel level, typename... T>
     void log(T &&...values) {
-        auto timestamp = getTimestampAsString();
+        std::string timestamp = getTimestampAsString();
 
         for (const Logger &l : loggers) {
             l.log<level>('[', timestamp, "] [", getStringValueOfLogLevel(level), "] ", std::forward<T>(values)..., '\n');
