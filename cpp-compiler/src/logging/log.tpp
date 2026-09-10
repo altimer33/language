@@ -26,7 +26,7 @@ namespace logger {
     template<LogLevel level, typename... T>
     void Logger::log(T &&...values) const {
         if (level >= minLevel && level <= maxLevel) {
-            (*(this->outstream) << ... << std::forward<T>(values));
+            (outstream << ... << std::forward<T>(values));
         }
     }
 

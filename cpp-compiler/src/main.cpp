@@ -3,10 +3,8 @@
 
 #include "logging/log.hpp"
 
-using namespace logger;
-
 int main(int argc, char* argv[]) {
-    addLogger(std::cout, LogLevel::DEBUG, LogLevel::CRITICAL);
+    logger::addLogger(std::cout, logger::LogLevel::DEBUG, logger::LogLevel::CRITICAL);
 
-    log<LogLevel::DEBUG>("Hello, World!");
+    logger::log<logger::LogLevel::DEBUG>("Hello, World!");
 }
