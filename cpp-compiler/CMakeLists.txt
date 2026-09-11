@@ -16,5 +16,7 @@ target_sources(language PRIVATE
     src/utils/compiler-utils.cpp
     src/utils/compiler-utils.tpp
     src/utils/compiler-utils.hpp
+    src/precompilation/options.cpp
+    src/precompilation/options.hpp
     src/main.cpp
 )
