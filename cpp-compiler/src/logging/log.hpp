@@ -1,5 +1,6 @@
 #pragma once
 
+#include <fstream>
 #include <ostream>
 
 namespace logger {
@@ -19,6 +20,7 @@ namespace logger {
         std::ostream &outstream;
         const LogLevel minLevel;
         const LogLevel maxLevel;
+        bool isFileOutput;
 
         template<LogLevel level, typename... T>
         void log(T &&...values) const;
@@ -28,9 +30,15 @@ namespace logger {
         
     public:
         Logger(std::ostream &outstream, const LogLevel minLevel, const LogLevel maxLevel);
+        Logger(std::ofstream &outstream, const LogLevel minLevel, const LogLevel maxLevel);
+        
+        void close();
     };
 
     void addLogger(std::ostream &outstream, const LogLevel minLevel, const LogLevel maxLevel);
+    void addLogger(std::ofstream &outstream, const LogLevel minLevel, const LogLevel maxLevel);
+
+    void closeLoggers();
 }
 
 #include "log.tpp"

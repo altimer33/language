@@ -2,13 +2,22 @@
 
 #include <iostream>
 #include <vector>
+#include <filesystem>
+#include <fstream>
 
 namespace options {
+    struct SourceFile {
+        std::filesystem::path path;
+        std::ifstream &stream;
+
+        SourceFile(std::filesystem::path path, std::ifstream &&stream);
+    };
+
     class Options {
-        std::vector<std::istream*> _sources;
+        std::vector<SourceFile> _sources;
         std::ostream *_target;
 
-        Options(std::vector<std::istream*> &sources, std::ostream *target);
+        Options(std::vector<SourceFile> &&sources, std::ostream *target);
         Options();
 
         friend Options getCommandlineOptions(int count, char* args[]);

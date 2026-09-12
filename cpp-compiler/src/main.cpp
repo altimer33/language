@@ -9,5 +9,5 @@ int main(int argc, char* argv[]) {
     logger::addLogger(std::cout, logger::LogLevel::DEBUG, logger::LogLevel::WARN);
     logger::addLogger(std::cerr, logger::LogLevel::ERROR, logger::LogLevel::CRITICAL);
 
-    options::getCommandlineOptions(argc, argv);
+    options::Options options = options::getCommandlineOptions(argc, argv);
 }
