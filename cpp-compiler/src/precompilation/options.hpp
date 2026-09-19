@@ -8,7 +8,7 @@
 namespace options {
     struct SourceFile {
         std::filesystem::path path;
-        std::ifstream &stream;
+        std::ifstream stream;
 
         SourceFile(std::filesystem::path path, std::ifstream &&stream);
     };
@@ -21,6 +21,10 @@ namespace options {
         Options();
 
         friend Options getCommandlineOptions(int count, char* args[]);
+    
+    public:
+        std::vector<SourceFile> &sources();
+        std::ostream const *target();
     };
 
     Options getCommandlineOptions(int count, char* args[]);

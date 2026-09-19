@@ -20,7 +20,14 @@ namespace options {
             {}
     };
 
-    SourceFile::SourceFile(std::filesystem::path path, std::ifstream &&stream) : path{path}, stream{stream} {}
+    SourceFile::SourceFile(std::filesystem::path path, std::ifstream &&stream) : 
+        path{path},
+        stream{std::move(stream)}
+    {
+        if (!this->stream.good()) {
+            logger::log("Stream passed to SourceFile constructor is bad!");
+        }
+    }
 
     struct CurrentOptions {
         std::vector<std::filesystem::path> sourcepaths;
@@ -90,7 +97,6 @@ namespace options {
         bool allArgumentsAreGood = true;
         for (int i = 1; i < count; i++) {
             std::string argString = std::string(args[i]);
-            logger::log<logger::LogLevel::INFO>("Argument ", i, ": ", argString);
             if (!parseArgument(options, argString)) {
                 allArgumentsAreGood = false;
                 std::string message = std::format("Failed to parse argument {}: {}", i, argString);
@@ -109,16 +115,34 @@ namespace options {
         std::vector<SourceFile> sources = {};
 
         for (std::filesystem::path path : options.sourcepaths) {
-            sources.emplace_back(path, std::ifstream(path));
+            if (std::filesystem::exists(path)) {
+                logger::log<logger::LogLevel::INFO>("Adding file \"", path.relative_path().string(), '"');
+                std::ifstream stream = std::ifstream(path);
+                if (stream.good()) {
+                    sources.emplace_back(path, std::move(stream));
+                } else {
+                    logger::log<logger::LogLevel::ERROR>("Could not read file \"", path.relative_path().string(), '"');
+                }
+            } else {
+                logger::log<logger::LogLevel::ERROR>("Could not find file at \"", path.relative_path().string(), '"');
+            }
         }
 
         return allArgumentsAreGood ? Options(std::move(sources), (std::ostream *) nullptr) : Options();
     }
 
-    Options::Options(std::vector<SourceFile> &&sources, std::ostream *target) : _sources{sources}, _target{target} {}
+    Options::Options(std::vector<SourceFile> &&sources, std::ostream *target) : _sources{std::move(sources)}, _target{target} {}
 
     Options::Options() {
         _sources = std::vector<SourceFile>();
         _target = nullptr;
+    }
+
+    std::vector<SourceFile> &Options::sources() {
+        return _sources;
+    }
+
+    const std::ostream *Options::target() {
+        return _target;
     }
 }

@@ -12,7 +12,7 @@ namespace logger {
         CRITICAL
     };
     
-    template<LogLevel level, typename... T>
+    template<LogLevel level = LogLevel::DEBUG, typename... T>
     void log(T &&...values);
 
     class Logger {

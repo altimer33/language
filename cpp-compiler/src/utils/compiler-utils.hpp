@@ -3,13 +3,15 @@
 #include <iostream>
 #include <filesystem>
 #include <string>
+#include "precompilation/options.hpp"
 
 namespace compiler {
     struct Location {
         size_t line;
         size_t column;
-        std::istream* stream;
-        std::filesystem::path* file;
+        const std::filesystem::path *file;
+
+        Location(const size_t line, const size_t column, const std::filesystem::path *file);
     };
 
     class CompileError {
@@ -19,16 +21,22 @@ namespace compiler {
     public:
         Location location();
         std::string message();
+        std::string string();
+
+        CompileError(Location location, std::string message);
     };
 
     template <typename T>
     struct Failable {
     private:
+        bool _valid;
         union {
-            std::vector<CompileError*> _errors;
+            struct {
+                std::vector<CompileError*> _errors;
+                int *_refcount;
+            };
             T _value;
         };
-        bool _valid;
 
     public:
         bool valid() const;
@@ -40,6 +48,7 @@ namespace compiler {
         Failable(T value);
 
         Failable(std::vector<CompileError*> &&errors);
+        Failable(CompileError* error);
 
         Failable(Failable<T> &other);
         Failable(Failable<T> &&other);
@@ -47,6 +56,8 @@ namespace compiler {
         Failable<T> operator= (Failable<T> &&other);
         ~Failable();
     };
+
+    void compile(options::Options &opts);
 }
 
 #include "compiler-utils.tpp"

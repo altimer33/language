@@ -18,5 +18,7 @@ target_sources(language PRIVATE
     src/utils/compiler-utils.hpp
     src/precompilation/options.cpp
     src/precompilation/options.hpp
+    src/tokens/lexer.cpp
+    src/tokens/lexer.hpp
     src/main.cpp
 )
