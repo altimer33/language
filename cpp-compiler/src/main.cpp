@@ -8,6 +8,7 @@
 
 int main(int argc, char* argv[]) {
     try {
+
     options::Options options = options::getCommandlineOptions(argc, argv);
     
     compiler::compile(options);

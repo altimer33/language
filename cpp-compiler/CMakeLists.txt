@@ -21,4 +21,8 @@ target_sources(language PRIVATE
     src/tokens/lexer.cpp
     src/tokens/lexer.hpp
     src/main.cpp
+    src/parser/declarations.cpp
+    src/parser/declarations.hpp
+    src/parser/exceptions.hpp
+    src/parser/exceptions.cpp
 )

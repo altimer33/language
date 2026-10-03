@@ -16,19 +16,24 @@ namespace logger {
 
     std::string getTimestampAsString();
 
-    template<LogLevel level, typename... T>
+    template<LogLevel level, Printable... T>
     void Logger::log(T &&...values) const {
         if (level >= minLevel && level <= maxLevel) {
             (outstream << ... << std::forward<T>(values));
         }
     }
 
-    template<LogLevel level, typename... T>
+    template<LogLevel level, Printable... T>
     void log(T &&...values) {
         std::string timestamp = getTimestampAsString();
 
         for (const Logger &l : loggers) {
             l.log<level>('[', timestamp, "] [", getStringValueOfLogLevel(level), "] ", std::forward<T>(values)..., '\n');
         }
+    }
+
+    template<Stringable T>
+    std::ostream &operator<<(std::ostream &stream, T value) {
+        return stream << value.string();
     }
 }

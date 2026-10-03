@@ -23,27 +23,27 @@ namespace compiler::lexer {
         _source{getSource(source)}
     {}
 
-    TokenValue Token::source() {
+    TokenValue Token::source() const {
         return _source;
     }
 
-    const Location &Token::location() {
+    const Location &Token::location() const {
         return _location;
     }
 
-    std::string Token::string() {
+    std::string Token::string() const {
         return std::format("{{Token (at {}:{} in {}) type={} source=\"{}\"}}", _location.line, _location.column, _location.file->relative_path().string(), static_cast<int>(_type), *sourceString());
     }
 
-    std::string const *const Token::sourceString() {
+    std::string const *const Token::sourceString() const {
         return &sources[_source];
     }
 
-    TokenType Token::type() {
+    TokenType Token::type() const {
         return _type;
     }
 
-    bool Token::hasClassification(bool (&classification)[countoftypes]) {
+    bool Token::hasClassification(TokenClassification classification) const {
         return classification[(size_t) _type];
     }
 
@@ -116,7 +116,7 @@ namespace compiler::lexer {
     }
 
     Failable<Token> Lexer::constructToken(TokenType type, size_t length, std::string value) {
-        return Failable(Token(type, getTokenLocation(length), value));
+        return Token(type, getTokenLocation(length), value);
     }
 
     Failable<Token> Lexer::constructToken(TokenType type, size_t length) {
@@ -125,7 +125,7 @@ namespace compiler::lexer {
 
     Failable<Token> Lexer::nextTokenOrEof() {
         if (done()) {
-            return Failable<Token>(new CompileError(getTokenLocation(), "Tried to get token from already completed lexer."));
+            return CompileError(getTokenLocation(), "Tried to get token from already completed lexer.");
         }
 
         while (column < currentLine.size() && isWhitespace(current)) {
@@ -136,9 +136,9 @@ namespace compiler::lexer {
             if (!incrementLine()) {
                 logger::log("Done tokenizing file ", file().relative_path().string());
                 std::string s = "";
-                return Failable(Token(TokenType::EOF_, getTokenLocation(), s));
+                return Token(TokenType::EOF_, getTokenLocation(), s);
             } else [[likely]] {
-                return nextToken();
+                return nextTokenOrEof();
             }
         }
         
@@ -161,13 +161,13 @@ namespace compiler::lexer {
             return parseIdentifier();
         } else {
             _done = true;
-            return Failable<Token>(new CompileError(getTokenLocation(), std::format("Unexpected start of token: '{}'", current)));
+            return CompileError(getTokenLocation(), std::format("Unexpected start of token: '{}'", current));
         }
     }
 
     Failable<Token> Lexer::nextToken() {
         Failable<Token> token = nextTokenOrEof();
-        if (token.valid() && token.value().type() == TokenType::EOF_) return Failable<Token>(new CompileError(getTokenLocation(), "Unexpected end of file."));
+        if (token.valid() && token->type() == TokenType::EOF_) return CompileError(getTokenLocation(), "Unexpected end of file.");
         else [[likely]] return token;
     }
 
@@ -184,7 +184,7 @@ namespace compiler::lexer {
                 type = TokenType::PUNC_LCURLY;
                 break;
             case '}':
-                type = TokenType::PUNC_LCURLY;
+                type = TokenType::PUNC_RCURLY;
                 break;
             case ';':
                 type = TokenType::PUNC_SEMICOLON;
@@ -193,7 +193,7 @@ namespace compiler::lexer {
                 type = TokenType::PUNC_COMMA;
                 break;
             default:
-                return Failable<Token>(new CompileError(getTokenLocation(), std::format("Unexpected token '{}'", current)));
+                return CompileError(getTokenLocation(), std::format("Unexpected character '{}'", current));
         }
         getNextChar();
         return constructToken(type, 1);
@@ -231,7 +231,7 @@ namespace compiler::lexer {
             getNextChar();
             return constructToken(TokenType::OP_ASSIGN, 1);
         } else {
-            return Failable<Token>(new CompileError(getTokenLocation(), std::format("Unexpected token '{}'", current)));
+            return CompileError(getTokenLocation(), std::format("Unexpected token '{}'", current));
         }
     }
 }

@@ -1,5 +1,9 @@
 #include "logging/log.hpp"
 
+#include <string>
+#include <format>
+#include <ranges>
+
 namespace compiler {
     template<typename T>
     bool Failable<T>::valid() const {
@@ -7,7 +11,7 @@ namespace compiler {
     }
 
     template<typename T>
-    const std::vector<CompileError*> &Failable<T>::errors() const {
+    const std::shared_ptr<ErrorList> &Failable<T>::errors() const {
         if (_valid) {
             logger::log<logger::LogLevel::CRITICAL>("Attempted to get errors of a Failable object when the result was valid.");
             throw std::runtime_error("Attempted to get errors of a Failable object when the result was valid.");
@@ -27,82 +31,87 @@ namespace compiler {
     }
 
     template<typename T>
+    T &Failable<T>::operator*() {
+        return value();
+    }
+
+    template<typename T>
+    T *Failable<T>::operator->() {
+        return &value();
+    }
+
+    template<typename T>
     Failable<T>::Failable(T value) :
         _valid{true},
         _value{value}
     {}
 
     template<typename T>
-    Failable<T>::Failable(std::vector<CompileError*> &&errors) :
+    Failable<T>::Failable(std::shared_ptr<ErrorList> &&errors) :
         _valid{false},
-        _errors{errors},
-        _refcount{new int(1)}
+        _errors{std::move(errors)}
     {}
 
     template<typename T>
-    Failable<T>::Failable(CompileError* error) :
+    Failable<T>::Failable(CompileError &&error) :
         _valid{false},
-        _errors{std::vector<CompileError*>{error}},
-        _refcount{new int(1)}
-    {}
+        _errors{std::make_shared<ErrorList>(ErrorList())}
+    {
+        _errors->push_back(std::make_unique<CompileError>(error));
+    }
 
     template<typename T>
-    Failable<T>::Failable(Failable<T> &other) {
-        // Intentional assignment and not comparison below
-        if ((_valid = other._valid)) [[likely]] {
+    Failable<T>::Failable(Failable<T> &other) :
+        _valid{other._valid} {
+        if ((_valid)) [[likely]] {
             _value = other._value;
         } else {
-            _refcount = other._refcount;
-            (*_refcount)++;
+            _errors = other._errors;
         }
     }
 
     template<typename T>
-    Failable<T>::Failable(Failable<T> &&other) {
-        // Intentional assignment and not comparison below
-        if ((_valid = other._valid)) [[likely]] {
+    Failable<T>::Failable(Failable<T> &&other) : 
+        _valid{other._valid} {
+        if (_valid) [[likely]] {
             _value = std::move(other._value);
         } else {
             _errors = std::move(other._errors);
-            _refcount = other._refcount;
-            other._refcount = nullptr;
         }
     }
 
     template<typename T>
     Failable<T> Failable<T>::operator= (Failable<T> &other) {
-        if (this == &other) return;
+        if (this == &other) return other;
         if (_valid) [[likely]] {
-            _value.~vector();
+            _value.~T();
         } else {
-            _errors.~vector();
+            _errors.~shared_ptr();
         }
-        // Intentional assignment and not comparison below
-        if ((_valid = other._valid)) [[likely]] {
+        _valid = other._valid;
+        if (_valid) [[likely]] {
             _value = other._value;
         } else {
             _errors = other._errors;
-            _refcount = other._refcount;
-            (*_refcount)++;
         }
+        return *this;
     }
 
     template<typename T>
     Failable<T> Failable<T>::operator= (Failable<T> &&other) {
-        if (this == &other) return;
+        if (this == &other) return other;
         if (_valid) [[likely]] {
-            _value.~vector();
+            _value.~T();
         } else {
-            _errors.~vector();
+            _errors.~shared_ptr();
         }
-        // Intentional assignment and not comparison below
-        if ((_valid = other._valid)) [[likely]] {
+        _valid = other._valid;
+        if (_valid) [[likely]] {
             _value = std::move(other._value);
         } else {
             _errors = std::move(other._errors);
-            _refcount = other._refcount;
-            other._refcount = nullptr;
         }
+        return *this;
     }
 
     template<typename T>
@@ -110,15 +119,99 @@ namespace compiler {
         if (_valid) [[likely]] {
             _value.~T();
         } else {
-            if (_refcount != nullptr) {
-                (*_refcount)--;
-                if (*_refcount == 0) {
-                    for (CompileError *error : _errors) {
-                        delete error;
-                    }
-                }
-            }
-            _errors.~vector();
+            _errors.~shared_ptr();
         }
+    }
+
+    template<typename T>
+    template<typename U>
+        requires (!std::same_as<T, U> && std::constructible_from<T, U>)
+    Failable<T>::Failable(Failable<U> &other) {
+        if (other._valid) [[likely]] {
+            _valid = true;
+            _value = static_cast<T>(other._value);
+        } else {
+            _valid = false;
+            _errors = other._errors;
+        }
+    }
+
+    template<typename T>
+    template<typename U>
+        requires (!std::same_as<T, U> && !std::constructible_from<T, U>)
+    Failable<T>::Failable(Failable<U> &other) {
+        if (other._valid) [[unlikely]] {
+            throw std::runtime_error("Cannot convert Failable<T> to Failable<U> because Failable<T> is valid");
+        }
+        _valid = false;
+        _errors = std::move(other._errors);
+    }
+
+    template<typename T>
+    template<typename U>
+        requires (!std::same_as<T, U> && std::constructible_from<T, U>)
+    Failable<T>::Failable(Failable<U> &&other) {
+        if (other._valid) [[likely]] {
+            _valid = true;
+            _value = static_cast<T &&>(other._value);
+        } else {
+            _valid = false;
+            _errors = std::move(other._errors);
+        }
+    }
+
+    template<typename T>
+    template<typename U>
+        requires (!std::same_as<T, U> && !std::constructible_from<T, U>)
+    Failable<T>::Failable(Failable<U> &&other) {
+        if (other._valid) [[unlikely]] {
+            throw std::runtime_error("Cannot convert Failable<T> to Failable<U> because Failable<T> is valid");
+        }
+        _valid = false;
+        _errors = std::move(other._errors);
+    }
+    
+    template<typename U>
+        requires (!std::same_as<void, U>)
+    Failable<void>::Failable(Failable<U> &other) : 
+        _valid{other._valid}
+    {
+        if (!_valid) {
+            _errors = other._errors;
+        }
+    }
+    
+    template<typename U>
+        requires (!std::same_as<void, U>)
+    Failable<void>::Failable(Failable<U> &&other) : 
+        _valid{other._valid}
+    {
+        if (!_valid) {
+            _errors = std::move(other._errors);
+        }
+    }
+
+    template<typename T>
+        requires logger::Stringable<T>
+    std::string pvecToString(const std::vector<T *> &vec) {
+        return vec | std::views::transform([](T *val){return val->string();}) | std::views::join_with(std::string_view(", ")) | std::ranges::to<std::string>();
+    }
+
+    template<typename T>
+        requires logger::Stringable<T>
+    std::string pvecToString(const std::vector<std::unique_ptr<T>> &vec) {
+        return vec | std::views::transform([](std::unique_ptr<T> &val){return val->string();}) | std::views::join_with(std::string_view(", ")) | std::ranges::to<std::string>();
+    }
+
+    template<typename T>
+        requires logger::Stringable<T>
+    std::string pvecToString(const std::vector<std::shared_ptr<T>> &vec) {
+        return vec | std::views::transform([](std::shared_ptr<T> &val){return val->string();}) | std::views::join_with(std::string_view(", ")) | std::ranges::to<std::string>();
+    }
+
+    template<typename T>
+        requires logger::Stringable<T>
+    std::string vecToString(const std::vector<T> &vec) {
+        return vec | std::views::transform([](T val){return val.string();}) | std::views::join_with(std::string_view(", ")) | std::ranges::to<std::string>();
     }
 }

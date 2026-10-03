@@ -2,8 +2,22 @@
 
 #include <fstream>
 #include <ostream>
+#include <concepts>
+#include <string>
 
 namespace logger {
+    template<typename T>
+    concept DirectlyPrintable = requires (std::ostream &stream, T val) { {stream << val} -> std::same_as<std::ostream &>; };
+
+    template<typename T>
+    concept Stringable = requires (T val) { { val.string() } -> std::convertible_to<std::string>; };
+
+    template<typename T>
+    concept Printable = DirectlyPrintable<T> || Stringable<T>;
+
+    template<Stringable T>
+    std::ostream &operator<<(std::ostream &stream, T value);
+
     enum class LogLevel : unsigned char {
         DEBUG,
         INFO,
@@ -12,7 +26,7 @@ namespace logger {
         CRITICAL
     };
     
-    template<LogLevel level = LogLevel::DEBUG, typename... T>
+    template<LogLevel level = LogLevel::DEBUG, Printable... T>
     void log(T &&...values);
 
     class Logger {
@@ -22,10 +36,10 @@ namespace logger {
         const LogLevel maxLevel;
         bool isFileOutput;
 
-        template<LogLevel level, typename... T>
+        template<LogLevel level, Printable... T>
         void log(T &&...values) const;
 
-        template<LogLevel level, typename... T>
+        template<LogLevel level, Printable... T>
         friend void log(T &&...values);
         
     public:

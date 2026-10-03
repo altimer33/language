@@ -1,3 +1,5 @@
+#pragma once
+
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -6,7 +8,7 @@
 #include "utils/compiler-utils.hpp"
 
 namespace compiler::lexer {
-    typedef size_t TokenValue;
+    typedef size_t TokenValue; 
     
     enum class TokenType : char {
         EOF_,
@@ -30,6 +32,8 @@ namespace compiler::lexer {
 
     inline constexpr size_t countoftypes = 14;
 
+    using TokenClassification = bool (&)[countoftypes];
+
     class Token {
     private:
         TokenType _type;
@@ -39,14 +43,14 @@ namespace compiler::lexer {
     public:
         Token(TokenType type, Location location, std::string &source);
 
-        TokenValue source();
-        std::string const *const sourceString();
-        TokenType type();
-        const Location &location();
+        TokenValue source() const;
+        std::string const *const sourceString() const;
+        TokenType type() const;
+        const Location &location() const;
 
-        std::string string();
+        std::string string() const;
 
-        bool hasClassification(bool (&classification)[countoftypes]);
+        bool hasClassification(TokenClassification classification) const;
     };
 
     class Lexer {
